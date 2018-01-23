@@ -33,20 +33,23 @@ func hello(c echo.Context) error {
 		err = ws.ReadJSON(&msg)
 		if err != nil {
 			c.Logger().Error(err)
+			fmt.Println("ne mogu da procitam JSON")
 		}
 		fmt.Printf("%s\n", msg)
+
 		clients[msg.Username] = ws
 		sender := msg.Username
 		receiver := msg.Receiver
 		text := sender + ": " + msg.Message
-		receiverWs := clients[receiver]
-
-
-		// Write
-		err := receiverWs.WriteMessage(websocket.TextMessage, []byte(text))
-		if err != nil {
-			c.Logger().Error(err)
+		if receiverWs, ok := clients[receiver]; ok {
+			// Write
+			err := receiverWs.WriteMessage(websocket.TextMessage, []byte(text))
+			if err != nil {
+				c.Logger().Error(err)
+				fmt.Println("greska u slanju poruke")
+			}//do something here
 		}
+
 	}
 
 }

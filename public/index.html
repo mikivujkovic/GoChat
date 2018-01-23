@@ -6,7 +6,6 @@
         window.onload = function () {
             var conn;
             var msg = document.getElementById("msg");
-            var sender = document.getElementById("sender");
             var receiver = document.getElementById("receiver");
             var log = document.getElementById("log");
             function appendLog(item) {
@@ -16,6 +15,7 @@
                     log.scrollTop = log.scrollHeight - log.clientHeight;
                 }
             }
+            var sender = prompt("Unesi username", "")
             document.getElementById("form").onsubmit = function () {
                 if (!conn) {
                     return false;
@@ -23,13 +23,10 @@
                 if (!msg.value) {
                     return false;
                 }
-                if (!sender.value) {
-                    return false;
-                }
                 if (!receiver.value) {
                     return false;
                 }
-                var username_text = sender.value
+                var username_text = sender
                 var message_text = msg.value
                 var receiver_text = receiver.value
 
@@ -40,12 +37,31 @@
                 return false;
             };
             if (window["WebSocket"]) {
+
                 conn = new WebSocket("ws://" + document.location.host + "/ws");
                 conn.onclose = function (evt) {
                     var item = document.createElement("div");
                     item.innerHTML = "<b>Connection closed.</b>";
                     appendLog(item);
+                    ending = {
+                        "username":sender,
+                        "message":"disconecting",
+                        "receiver":"server"
+                    }
+                    ending_message = JSON.stringify(ending)
+                    conn.send(ending_message);
                 };
+                conn.onopen = function(evt) {
+                    start = {
+                        "username":sender,
+                        "message":"connection",
+                        "receiver":"server"
+                    }
+                    initial_message = JSON.stringify(start)
+                    conn.send(initial_message);
+                };
+
+
                 conn.onmessage = function (evt) {
                     var messages = evt.data.split('\n');
                     for (var i = 0; i < messages.length; i++) {
@@ -60,6 +76,9 @@
                 appendLog(item);
             }
         };
+        window.onclose() = function {
+
+        }
     </script>
     <style type="text/css">
         html {
@@ -99,7 +118,6 @@
 <div id="log"></div>
 <form id="form">
     <input type="submit" value="Send" />
-    <input type="text" id="sender" size="20" placeholder="sender"/>
     <input type="text" id="msg" size="20" placeholder="message"/>
     <input type="text" id="receiver" size="20" placeholder="receiver"/>
 </form>
